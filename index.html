@@ -2,223 +2,35 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Panel ESP32 - Monitorowanie Czujników</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Test LED ESP32</title>
   <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f4f4f9;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    h1 {
-      color: #333;
-      margin-top: 20px;
-      font-size: 32px;
-    }
-    button {
-      margin: 10px;
-      padding: 12px 24px;
-      font-size: 18px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    .status-container {
-      display: flex;
-      justify-content: space-around;
-      width: 100%;
-      margin-top: 20px;
-      max-width: 900px;
-      font-size: 20px;
-    }
-    .status-container span {
-      background-color: #fff;
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #ddd;
-    }
-    h3 {
-      margin-top: 30px;
-      font-size: 24px;
-    }
-    #history {
-      width: 90%;
-      background: #fff;
-      padding: 15px;
-      margin-top: 20px;
-      border-radius: 5px;
-      border: 1px solid #ddd;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    #monitor {
-      background: #000;
-      color: #0f0;
-      padding: 10px;
-      height: 200px;
-      width: 90%;
-      overflow: auto;
-      margin-top: 20px;
-      border-radius: 5px;
-    }
-    canvas {
-      margin-top: 30px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
+    body { font-family: Arial; text-align: center; margin-top: 50px; }
+    button { margin: 10px; padding: 20px; font-size: 24px; }
   </style>
 </head>
 <body>
 
-<h1>Panel ESP32 - Monitorowanie Czujników</h1>
+<h1>ESP32 - Kontrola LED</h1>
 
-<div class="status-container">
-  <div>
-    <h3>Czas pracy:</h3>
-    <span id="uptime">Ładowanie...</span>
-  </div>
-  <div>
-    <h3>Stan LED:</h3>
-    <span id="led">Ładowanie...</span>
-  </div>
-  <div>
-    <h3>Dane BLE:</h3>
-    <span id="ble">Ładowanie...</span>
-  </div>
-</div>
+<button onclick="controlLED('on')">Włącz LED</button>
+<button onclick="controlLED('off')">Wyłącz LED</button>
 
-<div>
-  <button onclick="sendCommand('on')">Włącz LED</button>
-  <button onclick="sendCommand('off')">Wyłącz LED</button>
-  <button onclick="sendCommand('reset_uptime')">Resetuj Uptime</button>
-  <button onclick="sendCommand('restart')">Restart ESP</button>
-  <button onclick="sendCommand('send')">Wyślij dane do Formularza</button>
-</div>
-
-<h3>Historia Odczytów:</h3>
-<div id="history">Ładowanie danych...</div>
-
-<h3>Wykres odczytów:</h3>
-<canvas id="chart" width="400" height="300"></canvas>
-
-<h3>Log monitora:</h3>
-<div id="monitor">Ładowanie logów...</div>
+<p id="status">Status: brak</p>
 
 <script>
-  const esp32BaseUrl = 'http://83.7.131.80'; // <-- Twoje publiczne IP
+  const esp32Url = "http://83.7.131.80"; // <--- Twój publiczny IP ESP32
 
-  function sendCommand(cmd) {
-    fetch(`${esp32BaseUrl}/${cmd}`)
-      .then(() => update())
-      .catch(err => console.error('Błąd wysyłania polecenia:', err));
-  }
-
-  function update() {
-    fetch(`${esp32BaseUrl}/uptime`)
+  function controlLED(action) {
+    fetch(`${esp32Url}/${action}`)
       .then(response => response.text())
-      .then(data => document.getElementById('uptime').innerText = data)
-      .catch(() => document.getElementById('uptime').innerText = 'Błąd');
-
-    fetch(`${esp32BaseUrl}/ledstatus`)
-      .then(response => response.text())
-      .then(data => document.getElementById('led').innerText = data)
-      .catch(() => document.getElementById('led').innerText = 'Błąd');
-
-    fetch(`${esp32BaseUrl}/bledata`)
-      .then(response => response.text())
-      .then(data => document.getElementById('ble').innerText = data)
-      .catch(() => document.getElementById('ble').innerText = 'Błąd');
-
-    fetch(`${esp32BaseUrl}/history`)
-      .then(response => response.text())
-      .then(data => document.getElementById('history').innerHTML = data)
-      .catch(() => document.getElementById('history').innerHTML = 'Błąd');
-
-    fetch(`${esp32BaseUrl}/seriallog`)
-      .then(response => response.text())
-      .then(data => document.getElementById('monitor').innerHTML = data)
-      .catch(() => document.getElementById('monitor').innerHTML = 'Błąd');
-
-    updateChart();
-  }
-
-  let chart;
-
-  function updateChart() {
-    fetch(`${esp32BaseUrl}/historyjson`)
-      .then(response => response.json())
       .then(data => {
-        const ctx = document.getElementById('chart').getContext('2d');
-        if (chart) {
-          chart.destroy();
-        }
-        chart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: data.labels,
-            datasets: [
-              {
-                label: 'Temperatura (°C)',
-                data: data.temp,
-                borderColor: 'red',
-                fill: false,
-                yAxisID: 'y',
-              },
-              {
-                label: 'Wilgotność (%)',
-                data: data.hum,
-                borderColor: 'blue',
-                fill: false,
-                yAxisID: 'y1',
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            interaction: {
-              mode: 'index',
-              intersect: false,
-            },
-            stacked: false,
-            scales: {
-              y: {
-                type: 'linear',
-                position: 'left',
-                title: {
-                  display: true,
-                  text: 'Temperatura (°C)',
-                },
-              },
-              y1: {
-                type: 'linear',
-                position: 'right',
-                grid: {
-                  drawOnChartArea: false,
-                },
-                title: {
-                  display: true,
-                  text: 'Wilgotność (%)',
-                },
-              },
-            },
-          },
-        });
+        document.getElementById('status').innerText = "Status: " + data;
       })
-      .catch(() => console.log('Błąd ładowania danych wykresu'));
+      .catch(error => {
+        document.getElementById('status').innerText = "Błąd połączenia!";
+        console.error('Błąd:', error);
+      });
   }
-
-  setInterval(update, 5000); // aktualizacja co 5 sekund
-  update(); // pierwsze ładowanie po starcie
 </script>
 
 </body>
