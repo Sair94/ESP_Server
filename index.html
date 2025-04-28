@@ -2,23 +2,24 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Test LED ESP32</title>
+  <title>ESP32 LED Control</title>
   <style>
-    body { font-family: Arial; text-align: center; margin-top: 50px; }
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
     button { margin: 10px; padding: 20px; font-size: 24px; }
+    p { font-size: 20px; }
   </style>
 </head>
 <body>
 
-<h1>ESP32 - Kontrola LED</h1>
+<h1>Sterowanie LED na ESP32</h1>
 
 <button onclick="controlLED('on')">Włącz LED</button>
 <button onclick="controlLED('off')">Wyłącz LED</button>
 
-<p id="status">Status: brak</p>
+<p id="status">Status: oczekiwanie...</p>
 
 <script>
-  const esp32Url = "http://83.7.131.80"; // <--- Twój publiczny IP ESP32
+  const esp32Url = "http://83.7.131.80"; // <- Twój publiczny IP
 
   function controlLED(action) {
     fetch(`${esp32Url}/${action}`)
