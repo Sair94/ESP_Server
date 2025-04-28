@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel ESP32</title>
+</head>
+<body>
+  <h1>Panel ESP32</h1>
+  <p>Uptime: <span id="uptime">Ładowanie...</span></p>
+  <button onclick="fetch('http://adres-do-esp32/on')">Włącz LED</button>
+  <button onclick="fetch('http://adres-do-esp32/off')">Wyłącz LED</button>
+
+  <script>
+    function update() {
+      fetch('http://adres-do-esp32/uptime')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('uptime').innerText = data;
+        })
+        .catch(err => console.error('Błąd połączenia z ESP32:', err));
+    }
+    setInterval(update, 3000);
+    update();
+  </script>
+</body>
+</html>
