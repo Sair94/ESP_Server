@@ -2,31 +2,108 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>ESP32 Panel - Online</title>
+  <title>Panel ESP32 - Monitorowanie Czujników</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    button { margin: 5px; padding: 10px; font-size: 16px; }
-    table { border-collapse: collapse; margin-top: 10px; }
-    td, th { border: 1px solid #000; padding: 5px; }
-    #monitor { background: #000; color: #0f0; padding: 10px; height: 200px; overflow: auto; }
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      color: #333;
+      margin-top: 20px;
+      font-size: 32px;
+    }
+    button {
+      margin: 10px;
+      padding: 12px 24px;
+      font-size: 18px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .status-container {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      margin-top: 20px;
+      max-width: 900px;
+      font-size: 20px;
+    }
+    .status-container span {
+      background-color: #fff;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    h3 {
+      margin-top: 30px;
+      font-size: 24px;
+    }
+    #history {
+      width: 90%;
+      background: #fff;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    #monitor {
+      background: #000;
+      color: #0f0;
+      padding: 10px;
+      height: 200px;
+      width: 90%;
+      overflow: auto;
+      margin-top: 20px;
+      border-radius: 5px;
+    }
+    canvas {
+      margin-top: 30px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
   </style>
 </head>
 <body>
 
-<h1>Panel ESP32 (przez Publiczne IP)</h1>
+<h1>Panel ESP32 - Monitorowanie Czujników</h1>
 
-<p>
+<div class="status-container">
+  <div>
+    <h3>Czas pracy:</h3>
+    <span id="uptime">Ładowanie...</span>
+  </div>
+  <div>
+    <h3>Stan LED:</h3>
+    <span id="led">Ładowanie...</span>
+  </div>
+  <div>
+    <h3>Dane BLE:</h3>
+    <span id="ble">Ładowanie...</span>
+  </div>
+</div>
+
+<div>
   <button onclick="sendCommand('on')">Włącz LED</button>
   <button onclick="sendCommand('off')">Wyłącz LED</button>
   <button onclick="sendCommand('reset_uptime')">Resetuj Uptime</button>
   <button onclick="sendCommand('restart')">Restart ESP</button>
   <button onclick="sendCommand('send')">Wyślij dane do Formularza</button>
-</p>
-
-<h3>Czas pracy: <span id="uptime">---</span></h3>
-<h3>Stan LED: <span id="led">---</span></h3>
-<h3>Dane BLE: <span id="ble">---</span></h3>
+</div>
 
 <h3>Historia Odczytów:</h3>
 <div id="history">Ładowanie danych...</div>
@@ -94,12 +171,14 @@
                 label: 'Temperatura (°C)',
                 data: data.temp,
                 borderColor: 'red',
+                fill: false,
                 yAxisID: 'y',
               },
               {
                 label: 'Wilgotność (%)',
                 data: data.hum,
                 borderColor: 'blue',
+                fill: false,
                 yAxisID: 'y1',
               }
             ]
@@ -117,22 +196,22 @@
                 position: 'left',
                 title: {
                   display: true,
-                  text: 'Temperatura (°C)'
-                }
+                  text: 'Temperatura (°C)',
+                },
               },
               y1: {
                 type: 'linear',
                 position: 'right',
                 grid: {
-                  drawOnChartArea: false
+                  drawOnChartArea: false,
                 },
                 title: {
                   display: true,
-                  text: 'Wilgotność (%)'
-                }
-              }
-            }
-          }
+                  text: 'Wilgotność (%)',
+                },
+              },
+            },
+          },
         });
       })
       .catch(() => console.log('Błąd ładowania danych wykresu'));
